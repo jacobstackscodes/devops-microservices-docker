@@ -1,36 +1,75 @@
-# 🚀 Containerized Microservices System (Flask + MongoDB)
+# 🚀 Containerized Microservices System with CI/CD (Flask + MongoDB + Jenkins)
 
-This project demonstrates a simple microservices architecture using Docker and Docker Compose.
+This project demonstrates a complete DevOps workflow by combining containerization and continuous integration/continuous deployment (CI/CD).
 
-It consists of a Flask-based backend API and a MongoDB database running as separate containers, communicating over a shared Docker network.
+It starts with a Dockerized microservices setup (Flask + MongoDB) and extends into an automated pipeline using Jenkins to build and deploy the application.
 
 ---
 
 ## 🧱 Architecture
 
+### Application Layer
+
 * Backend Service → Flask API (Python)
 * Database Service → MongoDB
+
+### DevOps Layer
+
 * Containerization → Docker
 * Orchestration → Docker Compose
-* Data Persistence → Docker Volumes
+* CI/CD → Jenkins (running inside Docker)
 
 ---
 
 ## ⚙️ Features
 
+### Application
+
 * REST API with multiple endpoints
 * MongoDB integration using PyMongo
-* Fully containerized backend
-* Multi-container setup using Docker Compose
-* Persistent database storage using volumes
 * Environment-based configuration (no hardcoded DB URLs)
+
+### DevOps
+
+* Fully containerized multi-service application
+* Automated build and deployment using Jenkins
+* Docker socket integration for Jenkins-based deployments
+* Persistent database storage using Docker volumes
+
+---
+
+## 🔄 CI/CD Pipeline (Jenkins)
+
+The pipeline automates the deployment process:
+
+1. Jenkins pulls the latest code from GitHub
+2. Stops running containers
+3. Rebuilds Docker images
+4. Deploys updated containers using Docker Compose
+
+### Jenkinsfile
+
+```groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Build & Deploy') {
+            steps {
+                sh 'docker-compose down'
+                sh 'docker-compose up --build -d'
+            }
+        }
+    }
+}
+```
 
 ---
 
 ## 📂 Project Structure
 
 ```
-devops-microservices-project/
+devops-microservices-docker/
 
 ├── backend/
 │   ├── app.py
@@ -38,6 +77,7 @@ devops-microservices-project/
 │   └── Dockerfile
 │
 ├── docker-compose.yml
+├── Jenkinsfile
 ├── README.md
 └── .gitignore
 ```
@@ -69,7 +109,7 @@ Create a new user
 
 ---
 
-## 🐳 How to Run
+## 🐳 How to Run (Local Setup)
 
 Make sure Docker is installed and running.
 
@@ -82,26 +122,35 @@ http://localhost:5000/
 
 ---
 
+## ⚙️ How CI/CD Works
+
+* Jenkins runs inside a Docker container
+* Docker socket is mounted to Jenkins
+* Jenkins executes Docker commands directly
+* Pipeline rebuilds and redeploys services automatically
+
+---
+
 ## 🧠 Key Learnings
 
-* How to containerize a backend service using Docker
-* How to connect multiple containers using Docker Compose
-* Why `localhost` does not work across containers
-* How to use service names as hostnames in Docker networks
-* How to persist data using Docker volumes
-* How to manage environment variables in containerized apps
+* Containerizing applications using Docker
+* Managing multi-container systems with Docker Compose
+* Understanding container networking and service communication
+* Implementing CI/CD pipelines using Jenkins
+* Running Docker commands inside Jenkins containers
+* Debugging real-world DevOps issues (permissions, networking, tooling)
 
 ---
 
 ## 📌 Future Improvements
 
-* Add authentication (JWT)
-* Add frontend service
-* Deploy using AWS ECS / Kubernetes
-* Add CI/CD pipeline
+* Add automated testing stage in pipeline
+* Trigger builds using GitHub webhooks
+* Create custom Jenkins Docker image (with Docker & Compose preinstalled)
+* Deploy using Kubernetes
 
 ---
 
 ## 👨‍💻 Author
 
-Built as part of a DevOps learning project.
+Built as a hands-on DevOps project to demonstrate containerization and CI/CD pipeline implementation.
