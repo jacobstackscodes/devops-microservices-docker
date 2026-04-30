@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Build & Deploy') {
             steps {
-                sh 'docker compose down'
-                sh 'docker compose up --build -d'
+                sh 'docker-compose down'
+                sh 'docker-compose up --build -d'
             }
         }
     }
