@@ -1,8 +1,14 @@
-# 🚀 Containerized Microservices System with CI/CD (Flask + MongoDB + Jenkins)
+# 🚀 Containerized Microservices System with Reverse Proxy & CI/CD
 
-This project demonstrates a complete DevOps workflow by combining containerization and continuous integration/continuous deployment (CI/CD).
+*(Flask + MongoDB + HAProxy + Jenkins)*
 
-It starts with a Dockerized microservices setup (Flask + MongoDB) and extends into an automated pipeline using Jenkins to build and deploy the application.
+This project demonstrates a production-like DevOps setup by combining containerization, reverse proxy configuration, and CI/CD automation.
+
+It includes:
+
+* A Dockerized microservices application (Flask + MongoDB)
+* HAProxy as a reverse proxy with load balancing and HTTPS
+* Jenkins pipeline for automated build and deployment
 
 ---
 
@@ -10,14 +16,36 @@ It starts with a Dockerized microservices setup (Flask + MongoDB) and extends in
 
 ### Application Layer
 
-* Backend Service → Flask API (Python)
-* Database Service → MongoDB
+* **Backend Service** → Flask API (Python)
+* **Database Service** → MongoDB
+
+### Networking Layer
+
+* **Reverse Proxy** → HAProxy
+
+  * Routes incoming traffic to backend containers
+  * Performs load balancing
+  * Handles SSL termination (HTTPS)
 
 ### DevOps Layer
 
-* Containerization → Docker
-* Orchestration → Docker Compose
-* CI/CD → Jenkins (running inside Docker)
+* **Containerization** → Docker
+* **Orchestration** → Docker Compose
+* **CI/CD** → Jenkins (Docker-based)
+
+---
+
+## 🔁 Request Flow
+
+```
+Client (Browser / curl)
+        ↓
+HAProxy (HTTP / HTTPS)
+        ↓
+Flask Backend (multiple containers)
+        ↓
+MongoDB
+```
 
 ---
 
@@ -27,25 +55,54 @@ It starts with a Dockerized microservices setup (Flask + MongoDB) and extends in
 
 * REST API with multiple endpoints
 * MongoDB integration using PyMongo
-* Environment-based configuration (no hardcoded DB URLs)
+* Environment-based configuration
 
 ### DevOps
 
-* Fully containerized multi-service application
-* Automated build and deployment using Jenkins
-* Docker socket integration for Jenkins-based deployments
-* Persistent database storage using Docker volumes
+* Multi-container Docker setup
+* Reverse proxy using HAProxy
+* Load balancing across backend instances
+* SSL termination using self-signed certificate
+* Automated CI/CD pipeline using Jenkins
+* Persistent storage using Docker volumes
+
+---
+
+## 🔄 Reverse Proxy (HAProxy)
+
+HAProxy acts as the entry point for all traffic:
+
+* Routes requests to backend containers
+* Distributes load using **round-robin**
+* Handles HTTPS and forwards requests internally via HTTP
+
+### Ports
+
+| Service         | Port |
+| --------------- | ---- |
+| HTTP (HAProxy)  | 9090 |
+| HTTPS (HAProxy) | 9443 |
+
+---
+
+## 🔐 SSL Setup
+
+* Self-signed certificate generated using OpenSSL
+* Combined into a `.pem` file for HAProxy
+* HTTPS traffic is terminated at HAProxy
+
+> Note: Browser will show a "Not Secure" warning due to self-signed certificate
 
 ---
 
 ## 🔄 CI/CD Pipeline (Jenkins)
 
-The pipeline automates the deployment process:
+The pipeline automates deployment:
 
-1. Jenkins pulls the latest code from GitHub
-2. Stops running containers
-3. Rebuilds Docker images
-4. Deploys updated containers using Docker Compose
+1. Pull latest code from repository
+2. Stop running containers
+3. Rebuild images
+4. Deploy updated services
 
 ### Jenkinsfile
 
@@ -69,12 +126,16 @@ pipeline {
 ## 📂 Project Structure
 
 ```
-devops-microservices-docker/
+devops-microservices-project/
 
 ├── backend/
 │   ├── app.py
 │   ├── requirements.txt
 │   └── Dockerfile
+│
+├── haproxy/
+│   ├── haproxy.cfg
+│   └── haproxy.pem
 │
 ├── docker-compose.yml
 ├── Jenkinsfile
@@ -88,15 +149,13 @@ devops-microservices-docker/
 
 ### GET `/`
 
-Returns a health check message
+Health check
 
 ### GET `/users`
 
-Fetch all users from MongoDB
+Fetch all users
 
 ### POST `/users`
-
-Create a new user
 
 #### Example Request:
 
@@ -109,48 +168,55 @@ Create a new user
 
 ---
 
-## 🐳 How to Run (Local Setup)
+## 🐳 How to Run
 
-Make sure Docker is installed and running.
+Make sure Docker is running.
 
+```bash
+docker-compose up --build --scale backend=2
 ```
-docker-compose up --build
-```
-
-Then open:
-http://localhost:5000/
 
 ---
 
-## ⚙️ How CI/CD Works
+## 🌐 Access Application
 
-* Jenkins runs inside a Docker container
-* Docker socket is mounted to Jenkins
-* Jenkins executes Docker commands directly
-* Pipeline rebuilds and redeploys services automatically
+* HTTP → http://localhost:9090
+* HTTPS → https://localhost:9443
+
+> Accept browser warning for HTTPS (self-signed certificate)
+
+---
+
+## 🧪 Testing
+
+```bash
+curl http://localhost:9090
+curl -k https://localhost:9443
+```
 
 ---
 
 ## 🧠 Key Learnings
 
-* Containerizing applications using Docker
-* Managing multi-container systems with Docker Compose
-* Understanding container networking and service communication
-* Implementing CI/CD pipelines using Jenkins
-* Running Docker commands inside Jenkins containers
-* Debugging real-world DevOps issues (permissions, networking, tooling)
+* Reverse proxy architecture using HAProxy
+* SSL termination and HTTPS handling
+* Load balancing across multiple containers
+* Docker networking and service discovery
+* CI/CD automation using Jenkins
+* Debugging real-world issues (ports, DNS, SSL, shell behavior)
 
 ---
 
 ## 📌 Future Improvements
 
-* Add automated testing stage in pipeline
-* Trigger builds using GitHub webhooks
-* Create custom Jenkins Docker image (with Docker & Compose preinstalled)
-* Deploy using Kubernetes
+* Add health checks for backend services
+* Use Nginx or Traefik for comparison
+* Replace self-signed cert with Let's Encrypt
+* Deploy to cloud (AWS / GCP)
+* Move to Kubernetes for orchestration
 
 ---
 
 ## 👨‍💻 Author
 
-Built as a hands-on DevOps project to demonstrate containerization and CI/CD pipeline implementation.
+Built as a hands-on DevOps project demonstrating reverse proxy, load balancing, and CI/CD in a containerized environment.
